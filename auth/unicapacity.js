@@ -1,110 +1,70 @@
 const express = require('express');
-const router = express.Router();
-const University = require('../database/university');
-const UniversityCapacity = require('../database/universityCapacitySchema');
+const University = require('../database/universityCapacitySchema');
+const route = express.Router();
 
-// Middleware to check if user is admin
-const isAdmin = (req, res, next) => {
-    // Replace this with your actual admin check logic
-    const isAdminUser = true; // Example: Assuming user is admin for demonstration
+// Array of universities to be added
+const universitiesData = [
+  { "name": "Addis Ababa University", "capacity": 4000 },
+  { "name": "Adama Science and Technology University", "capacity": 3000 },
+  { "name": "Arba Minch University", "capacity": 3500 },
+  { "name": "Bahir Dar University", "capacity": 2500 },
+  { "name": "Dilla University", "capacity": 3000 },
+  { "name": "Haramaya University", "capacity": 4000 },
+  { "name": "Hawassa University", "capacity": 3000 },
+  { "name": "Jimma University", "capacity": 3500 },
+  { "name": "Mekelle University", "capacity": 4000 },
+  { "name": "Wolaita Sodo University", "capacity": 2500 },
+  { "name": "Ambo University", "capacity": 3000 },
+  { "name": "Aksum University", "capacity": 3500 },
+  { "name": "Debre Berhan University", "capacity": 3000 },
+  { "name": "Debre Markos University", "capacity": 2500 },
+  { "name": "Mizan Tepi University", "capacity": 3500 },
+  { "name": "Semera University", "capacity": 3000 },
+  { "name": "Wachamo University", "capacity": 2500 },
+  { "name": "Wolkite University", "capacity": 4000 },
+  { "name": "Wollega University", "capacity": 3000 },
+  { "name": "Wollo University", "capacity": 2500 },
+  { "name": "Adigrat University", "capacity": 3500 },
+  { "name": "Dire Dawa University", "capacity": 3000 },
+  { "name": "Gondar University", "capacity": 4000 },
+  { "name": "Jijiga University", "capacity": 3000 },
+  { "name": "Mada Walabu University", "capacity": 3500 },
+  { "name": "Metu University", "capacity": 3000 },
+  { "name": "Asosa University", "capacity": 2500 },
+  { "name": "Bule Hora University", "capacity": 3500 },
+  { "name": "Debre Tabor University", "capacity": 2500 },
+  { "name": "Mettu University", "capacity": 4000 },
+  { "name": "Bonga University", "capacity": 3000 },
+  { "name": "Wachemo University", "capacity": 2500 },
+  { "name": "Kebri Dehar University", "capacity": 3500 },
+  { "name": "Welkite University", "capacity": 3000 },
+  { "name": "Mizan Tepi University", "capacity": 4000 },
+  { "name": "Woldia University", "capacity": 3000 },
+  { "name": "Assosa University", "capacity": 2500 },
+  { "name": "Kebri Dehar University", "capacity": 3500 },
+  { "name": "Samara University", "capacity": 3000 },
+  { "name": "Jigjiga University", "capacity": 4000 },
+  { "name": "Addis Ababa Science and Technology University", "capacity": 3000 }
+];
 
-    if (!isAdminUser) {
-        return res.status(403).json({ error: 'Unauthorized access' });
-    }
-
-    next();
-};
-
-// POST endpoint to create university with initial capacity (Admin Only)
-router.post('/post', async (req, res) => {
-    const { name, capacity } = req.body;
-
-    try {
-        // Check if the university already exists
-        let university = await University.findOne({ name });
-        if (university) {
-            return res.status(400).json({ error: 'University already exists' });
-        }
-
-        // Create new university
-        university = new University({ name });
-        await university.save();
-
-        // Create university capacity entry
-        const universityCapacity = new UniversityCapacity({
-            university: university._id,
-            capacity
-        });
-        await universityCapacity.save();
-
-        res.status(201).json({ message: 'University and capacity created successfully', university, universityCapacity });
-    } catch (error) {
-        res.status(500).json({ error: 'An error occurred while creating university and capacity' });
-    }
+// POST operation to add universities to database
+route.post('/universities', async (req, res) => {
+  try {
+    await University.insertMany(universitiesData); // Insert all universities at once
+    res.status(201).json({ message: 'Universities added successfully' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
-// GET endpoint to fetch all universities with capacities (Admin Only)
-router.get('/get', isAdmin, async (req, res) => {
-    try {
-        const universities = await University.find();
-        const universityCapacities = await UniversityCapacity.find().populate('university', 'name');
-        
-        // Combine university data with capacities
-        const universitiesWithCapacities = universities.map(university => {
-            const capacityEntry = universityCapacities.find(capacity => capacity.university._id.toString() === university._id.toString());
-            return {
-                _id: university._id,
-                name: university.name,
-                capacity: capacityEntry ? capacityEntry.capacity : 0
-            };
-        });
-
-        res.status(200).json(universitiesWithCapacities);
-    } catch (error) {
-        res.status(500).json({ error: 'An error occurred while fetching universities and capacities' });
-    }
+// GET operation to retrieve all universities
+route.get('/universities', async (req, res) => {
+  try {
+    const universities = await University.find();
+    res.json(universities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// PUT endpoint to update university capacity (Admin Only)
-router.put('/update/:id', isAdmin, async (req, res) => {
-    const { id } = req.params;
-    const { capacity } = req.body;
-
-    try {
-        // Check if the university capacity entry exists
-        let universityCapacity = await UniversityCapacity.findById(id);
-        if (!universityCapacity) {
-            return res.status(404).json({ error: 'University capacity entry not found' });
-        }
-
-        // Update capacity
-        universityCapacity.capacity = capacity;
-        await universityCapacity.save();
-
-        res.status(200).json({ message: 'University capacity updated successfully', universityCapacity });
-    } catch (error) {
-        res.status(500).json({ error: 'An error occurred while updating university capacity' });
-    }
-});
-
-// DELETE endpoint to delete university capacity entry (Admin Only)
-router.delete('/delete/:id', isAdmin, async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        // Check if the university capacity entry exists
-        let universityCapacity = await UniversityCapacity.findById(id);
-        if (!universityCapacity) {
-            return res.status(404).json({ error: 'University capacity entry not found' });
-        }
-
-        // Delete capacity entry
-        await universityCapacity.remove();
-
-        res.status(200).json({ message: 'University capacity entry deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: 'An error occurred while deleting university capacity entry' });
-    }
-});
-
-module.exports = router;
+module.exports = route;

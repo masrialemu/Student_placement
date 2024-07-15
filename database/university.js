@@ -1,3 +1,4 @@
+// university.js
 const mongoose = require('mongoose');
 
 const studentSelectionSchema = new mongoose.Schema({
@@ -15,8 +16,6 @@ const studentSelectionSchema = new mongoose.Schema({
             type: String,
             required: true,
             enum: [
-
-
                 "Addis Ababa University", "Adama Science and Technology University", "Arba Minch University",
                 "Bahir Dar University", "Dilla University", "Haramaya University", "Hawassa University",
                 "Jimma University", "Mekelle University", "Wolaita Sodo University", "Ambo University",
@@ -28,8 +27,6 @@ const studentSelectionSchema = new mongoose.Schema({
                 "Wachemo University", "Kebri Dehar University", "Welkite University", "Mizan Tepi University",
                 "Woldia University", "Assosa University", "Kebri Dehar University", "Samara University",
                 "Jigjiga University", "Addis Ababa Science and Technology University"
-
-                
             ]
         }
     }],
@@ -40,6 +37,5 @@ const studentSelectionSchema = new mongoose.Schema({
     }
 });
 
-const StudentSelection = mongoose.model('StudentSelection', studentSelectionSchema);
-
-module.exports = StudentSelection;
+// Check if the model has already been defined to prevent OverwriteModelError
+module.exports = mongoose.models.StudentSelection || mongoose.model('StudentSelection', studentSelectionSchema);

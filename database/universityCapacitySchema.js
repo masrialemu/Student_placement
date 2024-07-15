@@ -1,19 +1,13 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const universityCapacitySchema = new mongoose.Schema({
-    university: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'University',
-        required: true,
-        unique: true
-    },
-    capacity: {
-        type: Number,
-        required: true,
-        default: 0
-    }
+// Define schema
+const universitySchema = new Schema({
+  name: { type: String, required: true, unique: true },
+  capacity: { type: Number, default: 0 },
 });
 
-const UniversityCapacity = mongoose.model('UniversityCapacity', universityCapacitySchema);
+// Create model
+const University = mongoose.model('University', universitySchema);
 
-module.exports = UniversityCapacity;
+module.exports = University;

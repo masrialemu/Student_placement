@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const StudentSelection = require('../database/university');
-const StudentRegistration = require('../database/studentRegistration');
+// Example corrected import in university.js or studentplace.js
+const StudentSelection = require('../database/university'); // Adjust path as per your actual file structure
+const StudentRegistration = require('../database/studentRegistration'); // Adjust the path based on your actual file structure
 
 // POST endpoint for student to select universities
 router.post('/selectuniversity', async (req, res) => {

@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const unicapacityRouter = require('./auth/unicapacity'); // Adjust the path as per your project structure
+const assignStudentsToUniversities = require('./university/algorithm'); // Adjust the path as per your project structure
 
 // Routes from your project
 const signupRoute = require('./auth/adminsignuppage');
@@ -11,11 +11,12 @@ const studentController = require('./admininput/admininput');
 const studentRouter = require('./auth/ssignup');
 const studentPlacement = require('./placement/studentplace');
 const adminPlacement = require('./placement/admin');
+const unicapacityRouter = require('./auth/unicapacity'); // Assuming this is the correct router file
 
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 
 app.use(express.json());
@@ -28,6 +29,15 @@ mongoose.connect(`mongodb+srv://Masri404:${DB_PASSWORD}@personalwebsite.uo6hnoi.
 
 const db = mongoose.connection;
 
+// Function to delete all collections
+async function deleteAllCollections() {
+    const collections = await mongoose.connection.db.collections();
+
+    for (let collection of collections) {
+        await collection.drop();
+    }
+}
+
 // Routes
 app.use('/api/', signupRoute);
 app.use('/api/', loginRoute);
@@ -37,6 +47,28 @@ app.use('/api/universities', unicapacityRouter); // Mount the university capacit
 app.use('/student', studentRouter);
 app.use('/', studentPlacement);
 app.use('/', adminPlacement);
+
+// Endpoint to trigger student assignment
+app.post('/api/assign-students', async (req, res) => {
+  try {
+    await assignStudentsToUniversities();
+    res.status(200).json({ message: 'Student assignment completed successfully.' });
+  } catch (error) {
+    console.error('Error assigning students:', error);
+    res.status(500).json({ error: 'An error occurred while assigning students.' });
+  }
+});
+
+// Endpoint to delete all collections (for development/debugging purposes)
+app.delete('/api/delete-all-collections', async (req, res) => {
+    try {
+        await deleteAllCollections();
+        res.status(200).json({ message: 'All collections deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting collections:', error);
+        res.status(500).json({ error: 'An error occurred while deleting collections.' });
+    }
+});
 
 // Student CRUD operations
 app.post('/api/adminpost', studentController.createStudent);
