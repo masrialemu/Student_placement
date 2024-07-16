@@ -4,14 +4,19 @@ const dotenv = require('dotenv');
 const assignStudentsToUniversities = require('./university/algorithm'); // Adjust the path as per your project structure
 
 // Routes from your project
-const signupRoute = require('./auth/adminsignuppage');
-const loginRoute = require('./auth/adminlogin');
-const adminReadRoute = require('./auth/adminread');
+
+const adminloginRoute = require('./Admin_authorization/admin');
+const adminReadRoute = require('./Admin_Task/adminread');
 const studentController = require('./admininput/admininput');
-const studentRouter = require('./auth/ssignup');
-const studentPlacement = require('./placement/studentplace');
-const adminPlacement = require('./placement/admin');
-const unicapacityRouter = require('./auth/unicapacity'); // Assuming this is the correct router file
+const studentRouter = require('./Student_authorization/student');
+const studentPlacement = require('./selectplacement/studentplacement');
+const adminPlacement = require('./selectplacement/admin');
+const unicapacityRouter = require('./Admin_Task/unicapacity'); // Assuming this is the correct router file
+const deleteAllCollections = require('./database/delete'); // Adjust the path accordingly
+const studentSpecialCase = require('./selectplacement/studentspecialcase');
+const studentinfo = require('./Admin_Task/studentinfo');
+
+
 
 dotenv.config();
 
@@ -29,46 +34,48 @@ mongoose.connect(`mongodb+srv://Masri404:${DB_PASSWORD}@personalwebsite.uo6hnoi.
 
 const db = mongoose.connection;
 
-// Function to delete all collections
-async function deleteAllCollections() {
-    const collections = await mongoose.connection.db.collections();
-
-    for (let collection of collections) {
-        await collection.drop();
+app.post('/api/delete-all-collections', async (req, res) => {
+    try {
+      await deleteAllCollections();
+      res.status(200).json({ message: 'All collections deleted successfully.' });
+    } catch (error) {
+      console.error('Error in delete-all-collections route:', error);
+      res.status(500).json({ error: `An error occurred while deleting collections: ${error.message}` });
     }
-}
+  });
+  
 
-// Routes
-app.use('/api/', signupRoute);
-app.use('/api/', loginRoute);
-app.use('/api/admins', adminReadRoute); // Mount the admin read route
+
+
+app.use('/admin', adminloginRoute); // Mount the admin read route
 app.use('/api/universities', unicapacityRouter); // Mount the university capacity router
 
+
+
+app.use('/student', studentSpecialCase);
 app.use('/student', studentRouter);
-app.use('/', studentPlacement);
+app.use('/student', studentPlacement);
 app.use('/', adminPlacement);
 
 // Endpoint to trigger student assignment
 app.post('/api/assign-students', async (req, res) => {
   try {
-    await assignStudentsToUniversities();
-    res.status(200).json({ message: 'Student assignment completed successfully.' });
+    const result = await assignStudentsToUniversities();
+    res.status(200).json({ message: 'Student assignment completed successfully.', result });
   } catch (error) {
     console.error('Error assigning students:', error);
     res.status(500).json({ error: 'An error occurred while assigning students.' });
   }
 });
 
-// Endpoint to delete all collections (for development/debugging purposes)
-app.delete('/api/delete-all-collections', async (req, res) => {
-    try {
-        await deleteAllCollections();
-        res.status(200).json({ message: 'All collections deleted successfully.' });
-    } catch (error) {
-        console.error('Error deleting collections:', error);
-        res.status(500).json({ error: 'An error occurred while deleting collections.' });
-    }
-});
+
+app.use('/', studentinfo);
+// app.get('/admin/studentinfo', studentinfo.getAllStudents);
+// app.get('/admin/studentinfo/:id', studentinfo.getStudentById);
+// app.put('/admin/studentinfo/:id', studentinfo.updateStudent);
+// app.delete('/admin/studentinfo/:id', studentinfo.deleteStudent);
+  
+  
 
 // Student CRUD operations
 app.post('/api/adminpost', studentController.createStudent);

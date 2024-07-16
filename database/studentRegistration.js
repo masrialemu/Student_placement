@@ -1,6 +1,6 @@
+// studentRegistration.js
+
 const mongoose = require('mongoose');
-
-
 
 const studentRegistrationSchema = new mongoose.Schema({
     studentId: {
@@ -16,10 +16,11 @@ const studentRegistrationSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 });
 
 const StudentRegistration = mongoose.model('StudentRegistration', studentRegistrationSchema);
 
 module.exports = StudentRegistration;
-

@@ -1,4 +1,4 @@
-const Student = require('../database/admininput');
+const Student = require('../database/studentpersonalinfo');
 
 // Create a new student record
 exports.createStudent = async (req, res) => {
