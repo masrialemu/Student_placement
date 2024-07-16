@@ -1,11 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const isAdmin = require('../middleware/isAdmin');
+const { auth, isAdmin } = require('../middleware/auth');
 const CourseResult = require('../database/courseResult');
+const StudentRegistration = require('../database/studentRegistration');
+
+// Middleware to check if studentId exists
+const checkStudentIdExists = async (req, res, next) => {
+    const { studentId } = req.body;
+
+    try {
+        const existingStudent = await StudentRegistration.findOne({ studentId });
+        if (!existingStudent) {
+            return res.status(404).json({ message: 'Student ID not found' });
+        }
+        next(); // Continue to the next middleware or route handler
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
 // Create a new course result
-router.post('/', auth, isAdmin, async (req, res) => {
+router.post('/admin/course', auth, isAdmin, checkStudentIdExists, async (req, res) => {
     const { studentId, courses, category } = req.body;
 
     try {
@@ -19,7 +34,7 @@ router.post('/', auth, isAdmin, async (req, res) => {
 });
 
 // Update a course result
-router.put('/:id', auth, isAdmin, async (req, res) => {
+router.put('/admin/course/:id', auth, isAdmin, checkStudentIdExists, async (req, res) => {
     const { courses, category } = req.body;
 
     try {
@@ -28,6 +43,7 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
             return res.status(404).json({ message: 'Course result not found' });
         }
 
+        // Update course result fields
         courseResult.courses = courses || courseResult.courses;
         courseResult.category = category || courseResult.category;
         courseResult.calculateTotalScore();
@@ -40,7 +56,7 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
 });
 
 // Delete a course result
-router.delete('/:id', auth, isAdmin, async (req, res) => {
+router.delete('/admin/course/:id', auth, isAdmin, async (req, res) => {
     try {
         const courseResult = await CourseResult.findByIdAndDelete(req.params.id);
         if (!courseResult) {
@@ -53,23 +69,13 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
 });
 
 // Get a course result by student ID
-router.get('/student/:studentId', auth, async (req, res) => {
+router.get('/admin/course/student/:studentId', async (req, res) => {
     try {
         const courseResult = await CourseResult.findOne({ studentId: req.params.studentId });
         if (!courseResult) {
             return res.status(404).json({ message: 'Course result not found' });
         }
         res.json(courseResult);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Get all course results
-router.get('/', auth, async (req, res) => {
-    try {
-        const courseResults = await CourseResult.find();
-        res.json(courseResults);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

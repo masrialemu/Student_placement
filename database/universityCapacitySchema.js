@@ -8,6 +8,6 @@ const universitySchema = new Schema({
 });
 
 // Create model
-const University = mongoose.model('University', universitySchema);
+const University = mongoose.model('Universitycapacity1', universitySchema);
 
 module.exports = University;

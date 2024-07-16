@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const StudentSelection = require('../database/university');
+const StudentSelection = require('../database/selectuniversity');
 const StudentRegistration = require('../database/studentRegistration');
 
 // PUT endpoint for admin to update student selection

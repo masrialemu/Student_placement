@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const assignStudentsToUniversities = require('./university/algorithm'); // Adjust the path as per your project structure
+// const assignStudentsToUniversities = require('./university/'); // Adjust the path as per your project structure
 
 // Routes from your project
 
@@ -15,6 +15,8 @@ const unicapacityRouter = require('./Admin_Task/unicapacity'); // Assuming this 
 const deleteAllCollections = require('./database/delete'); // Adjust the path accordingly
 const studentSpecialCase = require('./selectplacement/studentspecialcase');
 const studentinfo = require('./Admin_Task/studentinfo');
+const course = require('./Admin_Task/courseResult');
+const university = require('./university/universityRoutes');
 
 
 
@@ -76,7 +78,8 @@ app.use('/', studentinfo);
 // app.delete('/admin/studentinfo/:id', studentinfo.deleteStudent);
   
   
-
+app.use('/', course);
+app.use('/', university);
 // Student CRUD operations
 app.post('/api/adminpost', studentController.createStudent);
 app.get('/api/adminget', studentController.getAllStudents);
